@@ -13,6 +13,7 @@
   },
   "scripts": {
     "quartz": "./quartz/bootstrap-cli.mjs",
+    "sync": "node sync-r2.mjs",
     "docs": "npx quartz build --serve -d docs",
     "check": "tsc --noEmit && npx prettier . --check",
     "format": "npx prettier . --write",
@@ -35,6 +36,7 @@
     "quartz": "./quartz/bootstrap-cli.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1041.0",
     "@clack/prompts": "^0.7.0",
     "@floating-ui/dom": "^1.6.10",
     "@napi-rs/simple-git": "0.1.19",
@@ -44,6 +46,7 @@
     "chokidar": "^3.6.0",
     "cli-spinner": "^0.2.10",
     "d3": "^7.9.0",
+    "dotenv": "^17.4.2",
     "esbuild-sass-plugin": "^2.16.1",
     "flexsearch": "0.7.43",
     "github-slugger": "^2.0.0",
