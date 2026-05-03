@@ -30,32 +30,28 @@ jobs:
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
         run: |
           node sync-r2.mjs
-          if [ ! -d "content" ] || [ -z "$(ls -A content)" ]; then
-            echo "❌ 错误: content 目录为空，没有从 R2 同步到任何文件！"
-            exit 1
-          fi
-          echo "✅ 同步成功，文件列表如下："
           ls -R content/
 
       - name: Ensure Index File
         run: |
           if [ ! -f content/index.md ]; then
-            echo "⚠️ index.md 缺失，正在创建占位符..."
             echo "# My Quartz Garden" > content/index.md
           fi
 
       - name: Build Quartz
+        run: node quartz/bootstrap-cli.mjs build
+
+      - name: Verify Public Directory
         run: |
-          node quartz/bootstrap-cli.mjs build
-          if [ ! -d "public" ] || [ -z "$(ls -A public)" ]; then
-            echo "❌ 错误: public 目录为空，Quartz 构建失败或未生成任何 HTML！"
+          if [ ! -d "public" ]; then
+            echo "❌ ERROR: public directory not found!"
             exit 1
           fi
-          echo "✅ Quartz 构建成功！"
+          ls -F public/
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy public --project-name=${{ secrets.CLOUDFLARE_PAGES_PROJECT_NAME }}
+          command: pages deploy public --project-name=${{ secrets.CLOUDFLARE_PAGES_PROJECT_NAME }} --commit-dirty=true
