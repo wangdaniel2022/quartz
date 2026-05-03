@@ -30,21 +30,28 @@ jobs:
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
         run: |
           node sync-r2.mjs
-          echo "Current directory: $(pwd)"
-          echo "Listing content directory:"
-          ls -R content/ || mkdir content
+          if [ ! -d "content" ] || [ -z "$(ls -A content)" ]; then
+            echo "❌ 错误: content 目录为空，没有从 R2 同步到任何文件！"
+            exit 1
+          fi
+          echo "✅ 同步成功，文件列表如下："
+          ls -R content/
 
-      - name: Ensure Minimal Content
+      - name: Ensure Index File
         run: |
           if [ ! -f content/index.md ]; then
-            echo "# Fallback Index" > content/index.md
-            echo "Created fallback index.md"
+            echo "⚠️ index.md 缺失，正在创建占位符..."
+            echo "# My Quartz Garden" > content/index.md
           fi
 
       - name: Build Quartz
         run: |
           node quartz/bootstrap-cli.mjs build
-          echo "Build finished with status $?"
+          if [ ! -d "public" ] || [ -z "$(ls -A public)" ]; then
+            echo "❌ 错误: public 目录为空，Quartz 构建失败或未生成任何 HTML！"
+            exit 1
+          fi
+          echo "✅ Quartz 构建成功！"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
