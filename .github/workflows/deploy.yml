@@ -29,19 +29,22 @@ jobs:
           R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
         run: |
-          npm run sync
-          echo "Listing content directory after sync:"
-          ls -R content || echo "Content directory is empty"
+          node sync-r2.mjs
+          echo "Current directory: $(pwd)"
+          echo "Listing content directory:"
+          ls -R content/ || mkdir content
 
-      - name: Ensure Index File
+      - name: Ensure Minimal Content
         run: |
           if [ ! -f content/index.md ]; then
-            echo "index.md not found, creating placeholder"
-            echo "# Welcome to Quartz" > content/index.md
+            echo "# Fallback Index" > content/index.md
+            echo "Created fallback index.md"
           fi
 
       - name: Build Quartz
-        run: npx quartz build
+        run: |
+          node quartz/bootstrap-cli.mjs build
+          echo "Build finished with status $?"
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
